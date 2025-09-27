@@ -1,13 +1,11 @@
 package com.example.onboarding.presentation.controller;
 
 import com.example.onboarding.presentation.model.SdkConfigModel;
-import com.example.onboarding.presentation.model.UploadFileResponse;
 import com.example.onboarding.presentation.service.SdkConfigService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;

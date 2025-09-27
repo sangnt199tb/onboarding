@@ -16,6 +16,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
+logging:
+  file:
+    name: D:/Personal/Project/Log/myapp.log
+  level:
+    root: INFO
+    com.myapp: DEBUG
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
 
 tpb:
   hydro:
