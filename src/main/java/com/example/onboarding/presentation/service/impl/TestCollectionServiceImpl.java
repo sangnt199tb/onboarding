@@ -12,14 +12,17 @@ import com.example.onboarding.integration.model.ekyc.FaceRetrievalResponse;
 import com.example.onboarding.integration.service.CallOnlineService;
 import com.example.onboarding.integration.service.CreditOnlineService;
 import com.example.onboarding.presentation.configuration.AppConfiguration;
+import com.example.onboarding.presentation.controller.TestCollection;
 import com.example.onboarding.presentation.exception.ErrorCode;
 import com.example.onboarding.presentation.exception.OnboardingException;
 import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.model.multithreadedtest.*;
 import com.example.onboarding.presentation.service.TestCollectionService;
+import com.example.onboarding.presentation.util.Constant;
 import com.example.onboarding.presentation.util.LogUtil;
-import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -27,7 +30,6 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -36,6 +38,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
     private final CallOnlineService callOnlineService;
     private final AppConfiguration configuration;
     private final CreditOnlineService creditOnlineService;
+    private static final Logger logger = LoggerFactory.getLogger(TestCollectionServiceImpl.class);
 
     @Autowired
     @Qualifier("taskExecutor")
@@ -170,7 +173,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
                     .build();
             return callOnlineService.testPostCallOnline(request);
         } catch (Exception e){
-            System.out.println("TestCollectionServiceImpl testCallOnline with error detail: " + e);
+            logger.error("TestCollectionServiceImpl testCallOnline with error detail: ", e);
             throw new OnboardingException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
@@ -187,35 +190,31 @@ public class TestCollectionServiceImpl implements TestCollectionService {
 
             EkycResponse response = callOnlineService.compareFaceIntegration(request);
 
-            System.out.println("TestCollectionServiceImpl compareFace response: " + LogUtil.toJson(response));
+            logger.info("TestCollectionServiceImpl compareFace response: ", LogUtil.toJson(response));
 
             Float faceMatching = Float.valueOf(configuration.getThresholdScoreFaceMatch());
             Float liveness = Float.valueOf(configuration.getThresholdScoreLiveness());
-            Float retrival = Float.valueOf(configuration.getThresholdScoreRetrival());
-
-            System.out.println("====TestCollectionServiceImpl compareFace faceMatching: " + faceMatching);
-            System.out.println("====TestCollectionServiceImpl compareFace liveness: " + liveness);
-            System.out.println("====TestCollectionServiceImpl compareFace retrival: " + retrival);
+            Float retrieval = Float.valueOf(configuration.getThresholdScoreRetrival());
 
             Float faceMatchingEkyc = response.getResults().getFace_matching().getScore();
             if((faceMatchingEkyc - faceMatching) > 0){
-                faceMatchingResponse.setResultFaceMatching("MATCH");
+                faceMatchingResponse.setResultFaceMatching(Constant.MATCH);
             } else {
-                faceMatchingResponse.setResultFaceMatching("UN_MATCH");
+                faceMatchingResponse.setResultFaceMatching(Constant.UN_MATCH);
             }
 
             if(StringUtils.equalsIgnoreCase(response.getResults().getLiveness_check().getStatus(), "passed")){
-                faceMatchingResponse.setResultLiveness("PASS");
+                faceMatchingResponse.setResultLiveness(Constant.PASS);
             } else {
-                faceMatchingResponse.setResultLiveness("FAILED");
+                faceMatchingResponse.setResultLiveness(Constant.FAILED);
             }
 
             boolean resultFaceRetrival = response.getResults().getFace_retrieval().getTop_matches().stream()
-                    .anyMatch(e -> (e.getMatch_score() - retrival) < 0);
+                    .anyMatch(e -> (e.getMatch_score() - retrieval) < 0);
             if(resultFaceRetrival){
-                faceMatchingResponse.setResultFaceRetrival("PASS");
+                faceMatchingResponse.setResultFaceRetrival(Constant.PASS);
             } else {
-                faceMatchingResponse.setResultFaceRetrival("FAILED");
+                faceMatchingResponse.setResultFaceRetrival(Constant.FAILED);
             }
 
             return faceMatchingResponse;
@@ -228,12 +227,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
     @Override
     public GetListRetrievalResponse getListRetrieval(GetListRetrievalRequest request) {
         try {
-            System.out.println("====Start TestCollectionServiceImpl getListRetrieval====");
-
             FaceRetrievalResponse faceRetrievalResponse = callOnlineService.getListRetrieval(request);
-
-            System.out.println("TestCollectionServiceImpl getListRetrieval faceRetrievalResponse: " + LogUtil.toJson(faceRetrievalResponse));
-
             GetListRetrievalResponse response = new GetListRetrievalResponse();
             response.setStatus(faceRetrievalResponse.getResults().getStatus());
             response.setMatchCount(faceRetrievalResponse.getResults().getMatch_count());
@@ -265,12 +259,10 @@ public class TestCollectionServiceImpl implements TestCollectionService {
                             }
                     ).collect(Collectors.toList())
             );
-
-            System.out.println("TestCollectionServiceImpl getListRetrieval response: " + LogUtil.toJson(response));
             return response;
 
         } catch (Exception e){
-            System.out.println("TestCollectionServiceImpl getListRetrieval with error detail: " + e);
+            logger.error("TestCollectionServiceImpl getListRetrieval with error detail: {}", e);
             throw e;
         }
     }
@@ -318,7 +310,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
                     });
 
         } catch (Exception e){
-            System.out.println("TestCollectionServiceImpl getTestThread with error detail: " + e);
+            logger.error("TestCollectionServiceImpl getTestThread with error detail: ", e);
             throw e;
         }
     }
@@ -329,9 +321,9 @@ public class TestCollectionServiceImpl implements TestCollectionService {
         accountingRequest.setToken("123");
         accountingRequest.setUserId(request.getUserId());
         return CompletableFuture.supplyAsync(() ->{
-            System.out.println("Start callAccounting thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             AccountingIntegrationResponse response = creditOnlineService.getAccount(accountingRequest);
-            System.out.println("End callAccounting thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             return response;
         }, taskExecutor);
     }
@@ -341,9 +333,9 @@ public class TestCollectionServiceImpl implements TestCollectionService {
         bankTransactionRequest.setUserId(request.getUserId());
 
         return CompletableFuture.supplyAsync(() ->{
-            System.out.println("Start callBank thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             BankTransactionIntegrationResponse response = creditOnlineService.getBankTransaction(bankTransactionRequest);
-            System.out.println("End callBank thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             return response;
         }, taskExecutor);
     }
@@ -353,20 +345,20 @@ public class TestCollectionServiceImpl implements TestCollectionService {
         creditCardRequest.setUserId(request.getUserId());
 
         return CompletableFuture.supplyAsync(() ->{
-            System.out.println("Start callCreditCard thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             CreditCardIntegrationResponse response = creditOnlineService.getCreditCard(creditCardRequest);
-            System.out.println("End callCreditCard thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             return response;
         }, taskExecutor);
     }
 
     public CompletableFuture<CustomerIntegrationResponse> callCustomer(SummaryRequest request){
         return CompletableFuture.supplyAsync(() -> {
-            System.out.println("Start callCustomer thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             CustomerRequest customerRequest = new CustomerRequest();
             customerRequest.setUserId(request.getUserId());
             CustomerIntegrationResponse response = creditOnlineService.getCustomer(customerRequest);
-            System.out.println("End callCustomer thread name: " + Thread.currentThread().getName());
+            logger.info("Start callAccounting thread name:", Thread.currentThread().getName());
             return response;
         }, taskExecutor);
     }

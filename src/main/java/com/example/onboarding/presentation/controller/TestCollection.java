@@ -6,6 +6,8 @@ import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.model.multithreadedtest.SummaryRequest;
 import com.example.onboarding.presentation.model.multithreadedtest.SummaryResponse;
 import com.example.onboarding.presentation.service.TestCollectionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,9 @@ public class TestCollection {
 
     private final TestCollectionService testCollectionService;
 
+    private static final Logger logger = LoggerFactory.getLogger(TestCollection.class);
+
+
     @Autowired
     public TestCollection(TestCollectionService testCollectionService) {
         this.testCollectionService = testCollectionService;
@@ -23,6 +28,10 @@ public class TestCollection {
     @RequestMapping("/test-map")
     @GetMapping
     public boolean testMap(){
+        logger.info("Ứng dụng đã khởi động thành công!");
+        logger.debug("Đây là log DEBUG, chỉ hiện nếu cấu hình bật DEBUG cho package này");
+        logger.warn("Đây là log WARNING, chú ý nhé!");
+        logger.error("Đây là log ERROR, có lỗi rồi!");
         System.out.println("====Start TestCollection testMap====");
         testCollectionService.testCollection();
         return true;
@@ -53,11 +62,7 @@ public class TestCollection {
     @RequestMapping("/get-list-retrieval")
     @PostMapping
     public GetListRetrievalResponse getListRetrieval(@RequestBody GetListRetrievalRequest request){
-        System.out.println("====Start TestCollection getListRetrieval====");
-        System.out.println("====Start TestCollection getListRetrieval====");
-        System.out.println("====Start TestCollection getListRetrieval====");
-        System.out.println("====Start TestCollection getListRetrieval test git====");
-        System.out.println("====Start TestCollection getListRetrieval test git lan 1====");
+        logger.warn("start TestCollection getListRetrieval: {}", request);
         return testCollectionService.getListRetrieval(request);
     }
 
