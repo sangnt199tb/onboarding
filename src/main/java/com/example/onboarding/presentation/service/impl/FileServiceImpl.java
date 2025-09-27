@@ -1,0 +1,152 @@
+package com.example.onboarding.presentation.service.impl;
+
+import com.example.onboarding.persistence.domain.ManageFileEntity;
+import com.example.onboarding.persistence.repository.ManageFileRepo;
+import com.example.onboarding.presentation.configuration.AppConfiguration;
+import com.example.onboarding.presentation.exception.ErrorCode;
+import com.example.onboarding.presentation.exception.OnboardingException;
+import com.example.onboarding.presentation.model.DownloadFileRequest;
+import com.example.onboarding.presentation.model.UploadFileResponse;
+import com.example.onboarding.presentation.service.FileService;
+import com.example.onboarding.presentation.validator.Validate;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
+
+@Service
+public class FileServiceImpl implements FileService {
+    private final AppConfiguration appConfiguration;
+    private final ManageFileRepo manageFileRepo;
+
+    @Autowired
+    public FileServiceImpl(AppConfiguration appConfiguration, ManageFileRepo manageFileRepo) {
+        this.appConfiguration = appConfiguration;
+        this.manageFileRepo = manageFileRepo;
+    }
+
+
+    @Override
+    public UploadFileResponse uploadFile(MultipartFile file, String phoneNumber, String fileType, HttpServletRequest httpServletRequest) throws IOException {
+        // validate file name
+        Validate.validateFileName(file.getOriginalFilename());
+
+        // validate file type
+        Validate.validateFileType(file.getOriginalFilename());
+
+        String fileName = genFileName(phoneNumber) + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+
+        String filePath = appConfiguration.getSaveFile() + File.separator + fileName;
+        file.transferTo(new File(filePath));
+
+        UploadFileResponse response = new UploadFileResponse();
+
+        //save manageFile
+        ManageFileEntity manageFileEntity = new ManageFileEntity();
+        manageFileEntity.setId(UUID.randomUUID().toString());
+        manageFileEntity.setCreatedBy(phoneNumber);
+        manageFileEntity.setCreateDate(new Timestamp(System.currentTimeMillis()));
+        manageFileEntity.setFileName(file.getOriginalFilename());
+        manageFileEntity.setFilePath(filePath);
+        manageFileEntity.setFileStatus("CREATE");
+        manageFileEntity.setFileType(fileType);
+        manageFileEntity.setFomart(file.getContentType());
+
+        manageFileEntity = manageFileRepo.save(manageFileEntity);
+        response.setFileId(manageFileEntity.getId());
+        return response;
+    }
+
+    @Override
+    public ResponseEntity<byte[]> downloadFile(DownloadFileRequest downloadFileRequest) throws IOException {
+        byte[] resource = null;
+        ManageFileEntity entity = manageFileRepo.findFirstById(downloadFileRequest.getId());
+        File file = new File(entity.getFilePath());
+        if(file.exists()){
+            resource = IOUtils.toByteArray(loadFIleAsResource(entity.getFilePath()).getInputStream());
+            return ResponseEntity.ok()
+                    .contentLength(resource.length)
+                    .contentType(MediaType.parseMediaType(entity.getFomart()))
+                    .body(resource);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean deleteFileById(String fileId) throws IOException {
+        ManageFileEntity entity = manageFileRepo.findFirstById(fileId);
+        try {
+            if(Objects.nonNull(entity)){
+                if(StringUtils.isNotBlank(entity.getFilePath())){
+                    Path filePath = Paths.get(entity.getFilePath()).toAbsolutePath().normalize();
+                    System.out.println("deleteFileById filePath: " + filePath.toString());
+                    Resource resource = new UrlResource(filePath.toUri());
+                    if(resource.exists()){
+                        System.out.println("====deleteFileById filePath ton tai====");
+                        Files.delete(Paths.get(entity.getFilePath()).toAbsolutePath().normalize());
+                        entity.setFileStatus("DELETE");
+                        manageFileRepo.save(entity);
+                        return true;
+                    } else {
+                        throw new OnboardingException(ErrorCode.FILE_NOT_FOUND);
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                throw new OnboardingException(ErrorCode.FILE_NOT_FOUND);
+            }
+        } catch (Exception e){
+            System.out.println("====deleteFileById with error detail: ====" + e);
+            throw e;
+        }
+    }
+
+    public Resource loadFIleAsResource(String path){
+        try {
+            Path filePath;
+            filePath = Paths.get(path).toAbsolutePath().normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists()){
+                return resource;
+            }
+        } catch (Exception e){
+            System.out.println(e.toString());
+        }
+        throw new OnboardingException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+
+    private String getRandomString(){
+        String alphabet = "zxcvbnmasdfghjklpoiuytrewq";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 6; i++){
+            int index = random.nextInt(alphabet.length());
+            char randomChar = alphabet.charAt(index);
+            sb.append(randomChar);
+        }
+        return sb.toString();
+    }
+
+    private String genFileName(String phoneNumber){
+        return String.join("_", phoneNumber, String.valueOf(new Date().getTime()), getRandomString());
+    }
+}

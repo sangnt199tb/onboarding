@@ -1,0 +1,57 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /onboarding-presentation-service
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/onboarding
+    username: root
+    password: Putin@140223
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
+
+tpb:
+  hydro:
+    onboarding:
+      branchCode: 999
+      branchName: TPB
+      saveFile: D:\Personal\Project\test-save-file
+      maxPoolSize: ${OB_MAX_POOL_SIZE:1}
+      maxExecutorThread: ${OB_MAX_EXECUTOR_THREAD:1}
+      threadQueueCapacity: ${OB_THREAD_QUEUE_CAPACITY:1}
+      thresholdScoreFaceMatch: 1
+      thresholdScoreLiveness: 1
+      thresholdScoreRetrival: 1
+  integration:
+    callPostOnline: ${OB_INTEGRATION_POST:https://api-generator.retool.com/WfrVFG/data}
+    getListCommerce: ${OB_INTEGRATION_GET_LIST_COMMERCE:https://run.mocky.io/v3/1a24e46f-aced-4007-a23f-cf0ce5684e18}
+    ekycUrl: ${OB_INTEGRATION_EKYC_URL:https://run.mocky.io/v3/845e97ac-c0ae-47c3-8f8b-91a0308a74e6}
+    ekycFaceRetrieval: ${OB_INTEGRATION_EKYC_URL_FACE_RETRIEVAL:https://run.mocky.io/v3/c763ed33-8c33-4140-9ac9-cdfd8f2c7d78}
+    accountUrl: ${OB_INTEGRATION_ACCOUNT_URL:https://run.mocky.io/v3/b7065e8f-dff6-4eea-9a4f-3580464c97c9}
+    creditUrl: ${OB_INTEGRATION_CREADIT_URL:https://run.mocky.io/v3/3642b59d-a320-4f9e-9653-b224c1a7b687}
+    transactionUrl: ${OB_INTEGRATION_TRANSACTION_URL:https://run.mocky.io/v3/63d7492e-01a2-461d-a5ed-133397c66d81}
+    customerUrl: ${OB_INTEGRATION_CUSTOMER_URL:https://run.mocky.io/v3/5a7584ab-3ba5-4162-ae45-7a97836d1856}
+    ekycFaceMatching: https://run.mocky.io/v3/a0e5bf42-e8bc-4bed-9383-d097c0cc274c
+    ekycLivenessCheck: https://run.mocky.io/v3/f0619473-d6bd-4381-82cf-d3609602eca7
+    ekycFaceRetrievalCheck: https://run.mocky.io/v3/eeaef536-0767-4bf9-aed2-2bbb08938486
+    getListAccountByUserId: https://run.mocky.io/v3/fbc8d503-51c8-4213-a96d-e4ba89466e33
+    getListTransactionByAccountOne: https://run.mocky.io/v3/bd43fc19-bfbc-47e3-bf1c-62007360596d
+    getListTransactionByAccountTwo: https://run.mocky.io/v3/5653b22e-6079-4236-87fc-40f96f3d4650
+    infoCompanyUrl: https://run.mocky.io/v3/08e9957b-1b63-47e4-893e-fcbdde14b395
+job-schedule:
+  cron:
+    expression: ${OB_JOB_CRON_EXPRESSION:0 * * * * ?}
+  limit: ${OB_JOB_LIMIT:100}
+  offset: ${OB_JOB_OFFSET:0}
+  fixedDelay: ${OB_JOB_FIXED_DELAY:1000}
+  registerBranch: ${OB_JOB_REGISTER_BRANCH:999}
+  turnOn: ${OB_JOB_TURN_ON:true}
+  threadPool: ${OB_JOB_THREAD_POOL:5}
+
