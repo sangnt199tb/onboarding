@@ -54,6 +54,7 @@ public class TestCollection {
     @PostMapping
     public GetListRetrievalResponse getListRetrieval(@RequestBody GetListRetrievalRequest request){
         System.out.println("====Start TestCollection getListRetrieval====");
+        System.out.println("====Start TestCollection getListRetrieval====");
         return testCollectionService.getListRetrieval(request);
     }
 
