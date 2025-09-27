@@ -56,6 +56,8 @@ public class TestCollection {
         System.out.println("====Start TestCollection getListRetrieval====");
         System.out.println("====Start TestCollection getListRetrieval====");
         System.out.println("====Start TestCollection getListRetrieval====");
+        System.out.println("====Start TestCollection getListRetrieval test git====");
+        System.out.println("====Start TestCollection getListRetrieval test git lan 1====");
         return testCollectionService.getListRetrieval(request);
     }
 
