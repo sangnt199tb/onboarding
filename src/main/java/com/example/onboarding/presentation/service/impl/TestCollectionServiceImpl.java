@@ -186,6 +186,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
     @Override
     public FaceMatchingResponse compareFace(FaceMatchingRequest request) {
         try {
+            logger.info("Start TestCollectionServiceImpl compareFace with id: {}", request.getId());
             FaceMatchingResponse faceMatchingResponse = new FaceMatchingResponse();
 
             EkycResponse response = callOnlineService.compareFaceIntegration(request);
@@ -219,7 +220,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
 
             return faceMatchingResponse;
         } catch (Exception e){
-            System.out.println("TestCollectionServiceImpl compareFace with error detail: " + e);
+            logger.error("TestCollectionServiceImpl compareFace with error detail: ", e);
             throw new OnboardingException(ErrorCode.FACE_MATCH_FAILED);
         }
     }
@@ -227,6 +228,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
     @Override
     public GetListRetrievalResponse getListRetrieval(GetListRetrievalRequest request) {
         try {
+            logger.info("TestCollectionServiceImpl getListRetrieval with id: {}", request.getId());
             FaceRetrievalResponse faceRetrievalResponse = callOnlineService.getListRetrieval(request);
             GetListRetrievalResponse response = new GetListRetrievalResponse();
             response.setStatus(faceRetrievalResponse.getResults().getStatus());
