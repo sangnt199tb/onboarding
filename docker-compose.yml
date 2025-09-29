@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  onboarding-app:
+    container_name: "onboarding-app"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${ONBOARDING_SERVICE_PORT}:${ONBOARDING_SERVICE_PORT}"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://${ONBOARDING_DB_HOST}:${ONBOARDING_DB_PORT_INBOUND}/${ONBOARDING_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${ONBOARDING_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${ONBOARDING_DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    volumes:
+      - ./:/app
+    networks:
+      - onboarding-network
+
+  onboarding-db:
+    container_name: "onboarding-db"
+    image: mysql:8.0.29
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${ONBOARDING_DB_NAME}
+#      MYSQL_USER: ${ONBOARDING_DB_USERNAME}
+#      MYSQL_PASSWORD: ${ONBOARDING_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ONBOARDING_DB_ROOT_PASSWORD}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "${ONBOARDING_DB_PORT_OUTBOUND}:${ONBOARDING_DB_PORT_INBOUND}"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - onboarding-network
+
+volumes:
+  mysql_data:
+
+networks:
+  onboarding-network:
+    driver: bridge
+    external: true
