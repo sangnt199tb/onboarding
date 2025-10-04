@@ -6,13 +6,19 @@ import com.example.onboarding.presentation.configuration.AppConfiguration;
 import com.example.onboarding.presentation.exception.ErrorCode;
 import com.example.onboarding.presentation.exception.OnboardingException;
 import com.example.onboarding.presentation.model.DownloadFileRequest;
+import com.example.onboarding.presentation.model.ExportFileRequest;
+import com.example.onboarding.presentation.model.ExportFileResponse;
 import com.example.onboarding.presentation.model.UploadFileResponse;
 import com.example.onboarding.presentation.service.FileService;
+import com.example.onboarding.presentation.util.VelocityUtils;
 import com.example.onboarding.presentation.validator.Validate;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -20,22 +26,30 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class FileServiceImpl implements FileService {
     private final AppConfiguration appConfiguration;
     private final ManageFileRepo manageFileRepo;
+    private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
+
+    @jakarta.annotation.Resource
+    private TemplateEngine templateEngine;
+
+    @jakarta.annotation.Resource
+    private VelocityUtils velocityUtils;
 
     @Autowired
     public FileServiceImpl(AppConfiguration appConfiguration, ManageFileRepo manageFileRepo) {
@@ -118,6 +132,33 @@ public class FileServiceImpl implements FileService {
             System.out.println("====deleteFileById with error detail: ====" + e);
             throw e;
         }
+    }
+
+    @Override
+    public ExportFileResponse exportFile(ExportFileRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
+        try {
+            ExportFileResponse exportFileResponse = new ExportFileResponse();
+            Map<String, Object> data = insertData(request.getId());
+            Context context = new Context();
+            context.setVariables(data);
+            String fileName = "infoCus";
+            String htmlContent = templateEngine.process(fileName, context);
+            String miniType = "application/pdf;charset=UTF-8";
+            httpServletResponse.setContentType(miniType);
+            String nameFile = URLEncoder.encode("info customer_" + ".pdf", "UTF-8");
+            httpServletResponse.setCharacterEncoding("UTF-8");
+            httpServletResponse.setHeader("Content-Disposition", "attachment; filename=" + nameFile);
+            velocityUtils.genFilePdf(httpServletResponse, htmlContent);
+            exportFileResponse.setMessage("SUCCESS");
+            return exportFileResponse;
+        } catch (Exception e){
+            logger.error("FileServiceImpl exportFile with error detail: {}", e);
+            throw e;
+        }
+    }
+
+    private Map<String, Object> insertData(String id) {
+        return null;
     }
 
     public Resource loadFIleAsResource(String path){

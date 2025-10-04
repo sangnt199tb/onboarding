@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+    <style>
+        body {
+            margin-top: 160px;
+        }
+        .contract {
+            width: 100%;
+            margin: 10px auto;
+            font-family: "Arial Unicode MS";
+        }
+        .info-container {
+            display: inline-block;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .image-style {
+            display: inline-block;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px
+        }
+    </style>
+</head>
+<body>
+<div class="contract">
+    <!-- Part1 -->
+    <div class="title">
+        <div class="tbl-row" style="background-color: #efeff1; padding: 20px 0;">
+            <div style="margin-left: 150px">
+                <img style="width: 400px; height: 400px" th:src=" ${qrBase64}" alt='preview-qr' id="preview-qr" width="240" height="240"/>
+            </div>
+            <div class="info-container" style="margin-top: 30px; display: flex; width: 100%;">
+                <table style="margin: auto;  background-color: #FFFFFF; padding: 10px; border-radius: 5px;">
+                    <tr>
+                        <td style="width: 200px; vertical-align: top;font-size: 23px; color: #3c4665">Tên tài khoản</td>
+                        <td style="text-align: right;font-size: 23px"><span th:text=" ${accountName}" ></span></td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 23px; font-size: 23px ; color: #3c4665">Số tài khoản</td>
+                        <td style="text-align: right;font-size: 23px"><span th:text=" ${accountNumber}" ></span></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td style="text-align: right;font-size: 23px">Ngân hàng TMCP Tiên Phong</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
