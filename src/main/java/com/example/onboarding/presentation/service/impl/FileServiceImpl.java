@@ -150,7 +150,8 @@ public class FileServiceImpl implements FileService {
             String htmlContent = templateEngine.process(fileName, context);
             String miniType = "application/pdf;charset=UTF-8";
             httpServletResponse.setContentType(miniType);
-            String nameFile = URLEncoder.encode("info customer_" + ".pdf", "UTF-8");
+            String uuid = UUID.randomUUID().toString();
+            String nameFile = URLEncoder.encode("info customer_" + uuid +".pdf", "UTF-8");
             httpServletResponse.setCharacterEncoding("UTF-8");
             httpServletResponse.setHeader("Content-Disposition", "attachment; filename=" + nameFile);
             velocityUtils.genFilePdf(httpServletResponse, htmlContent);
