@@ -36,8 +36,10 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class FileServiceImpl implements FileService {
@@ -129,6 +131,9 @@ public class FileServiceImpl implements FileService {
                 throw new OnboardingException(ErrorCode.FILE_NOT_FOUND);
             }
         } catch (Exception e){
+            if(e instanceof TimeoutException){
+                throw new OnboardingException(ErrorCode.TIME_OUT);
+            }
             System.out.println("====deleteFileById with error detail: ====" + e);
             throw e;
         }
@@ -158,7 +163,10 @@ public class FileServiceImpl implements FileService {
     }
 
     private Map<String, Object> insertData(String id) {
-        return null;
+        Map<String, Object> map = new HashMap<>();
+        map.put("accountName","sang lang thang");
+        map.put("accountNumber","231231231");
+        return map;
     }
 
     public Resource loadFIleAsResource(String path){

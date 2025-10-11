@@ -26,10 +26,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -271,11 +273,13 @@ public class TestCollectionServiceImpl implements TestCollectionService {
 
     @Override
     public SummaryResponse getTestThread(SummaryRequest request) {
+        logger.info("Start TestCollectionServiceImpl getTestThread");
         return getTestThreadCompletableFuture(request).join();
     }
 
     public CompletableFuture<SummaryResponse> getTestThreadCompletableFuture(SummaryRequest request) {
         try {
+            logger.info("Start TestCollectionServiceImpl getTestThreadCompletableFuture");
             CompletableFuture<AccountingIntegrationResponse> accounting = callAccounting(request);
             CompletableFuture<BankTransactionIntegrationResponse> bank = callBank(request);
             CompletableFuture<CreditCardIntegrationResponse> creditCard = callCreditCard(request);
@@ -312,6 +316,9 @@ public class TestCollectionServiceImpl implements TestCollectionService {
                     });
 
         } catch (Exception e){
+            if(e instanceof ResourceAccessException){
+                throw new OnboardingException(ErrorCode.TIME_OUT);
+            }
             logger.error("TestCollectionServiceImpl getTestThread with error detail: ", e);
             throw e;
         }

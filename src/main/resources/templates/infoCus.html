@@ -1,57 +1,121 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Thông tin tài khoản</title>
     <style>
         body {
-            margin-top: 160px;
+            font-family: "Arial", sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 0;
         }
+
         .contract {
-            width: 100%;
-            margin: 10px auto;
-            font-family: "Arial Unicode MS";
+            width: 80%;
+            max-width: 900px;
+            margin: 120px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
+
+        .header {
+            background-color: #efeff1;
+            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .qr-container img {
+            width: 220px;
+            height: 220px;
+            border-radius: 10px;
+            border: 3px solid #dfe4ea;
+            background-color: #fff;
+            padding: 5px;
+        }
+
         .info-container {
-            display: inline-block;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
+            margin-top: 10px;
+            background-color: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            min-width: 320px;
         }
-        .image-style {
-            display: inline-block;
-            justify-content: center;
-            align-items: center;
-            margin-top: 15px
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 8px 0;
+            font-size: 22px;
+        }
+
+        td:first-child {
+            color: #3c4665;
+            font-weight: bold;
+        }
+
+        td:last-child {
+            text-align: right;
+            color: #2f3542;
+        }
+
+        .bank-name {
+            text-align: right;
+            font-size: 21px;
+            font-style: italic;
+            color: #57606f;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+            }
+
+            .info-container {
+                width: 100%;
+                margin-top: 20px;
+            }
+
+            .qr-container img {
+                width: 180px;
+                height: 180px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="contract">
-    <!-- Part1 -->
-    <div class="title">
-        <div class="tbl-row" style="background-color: #efeff1; padding: 20px 0;">
-            <div style="margin-left: 150px">
-                <img style="width: 400px; height: 400px" th:src=" ${qrBase64}" alt='preview-qr' id="preview-qr" width="240" height="240"/>
-            </div>
-            <div class="info-container" style="margin-top: 30px; display: flex; width: 100%;">
-                <table style="margin: auto;  background-color: #FFFFFF; padding: 10px; border-radius: 5px;">
-                    <tr>
-                        <td style="width: 200px; vertical-align: top;font-size: 23px; color: #3c4665">Tên tài khoản</td>
-                        <td style="text-align: right;font-size: 23px"><span th:text=" ${accountName}" ></span></td>
-                    </tr>
-                    <tr>
-                        <td style="font-size: 23px; font-size: 23px ; color: #3c4665">Số tài khoản</td>
-                        <td style="text-align: right;font-size: 23px"><span th:text=" ${accountNumber}" ></span></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td style="text-align: right;font-size: 23px">Ngân hàng TMCP Tiên Phong</td>
-                    </tr>
-                </table>
-            </div>
+    <div class="header">
+        <div class="qr-container">
+            <img th:src="${qrBase64}" alt="QR Code" id="preview-qr"/>
+        </div>
+
+        <div class="info-container">
+            <table>
+                <tr>
+                    <td>Tên tài khoản</td>
+                    <td><span th:text="${accountName}"></span></td>
+                </tr>
+                <tr>
+                    <td>Số tài khoản</td>
+                    <td><span th:text="${accountNumber}"></span></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="bank-name">Ngân hàng TMCP Tiên Phong</td>
+                </tr>
+            </table>
         </div>
     </div>
-
 </div>
 </body>
 </html>
