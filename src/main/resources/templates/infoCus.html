@@ -9,6 +9,7 @@
             background-color: #f5f6fa;
             margin: 0;
             padding: 0;
+            font-family: "DejaVu Sans", sans-serif;
         }
 
         .contract {
@@ -96,22 +97,22 @@
 <div class="contract">
     <div class="header">
         <div class="qr-container">
-            <img th:src="${qrBase64}" alt="QR Code" id="preview-qr"/>
+            <img th:src="'data:image/png;base64,' + ${qrBase64}" alt="QR Code" id="preview-qr"/>
         </div>
 
         <div class="info-container">
             <table>
                 <tr>
-                    <td>Tên tài khoản</td>
-                    <td><span th:text="${accountName}"></span></td>
+                    <td>Mã số sinh viên:</td>
+                    <td><span th:text="${idStudent}"></span></td>
                 </tr>
                 <tr>
-                    <td>Số tài khoản</td>
-                    <td><span th:text="${accountNumber}"></span></td>
+                    <td>Họ và tên:</td>
+                    <td><span th:text="${fullName}"></span></td>
                 </tr>
                 <tr>
                     <td></td>
-                    <td class="bank-name">Ngân hàng TMCP Tiên Phong</td>
+                    <td class="bank-name">Đại học Bách Khoa Hà Nội</td>
                 </tr>
             </table>
         </div>

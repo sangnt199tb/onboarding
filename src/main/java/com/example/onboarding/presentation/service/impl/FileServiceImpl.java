@@ -148,6 +148,7 @@ public class FileServiceImpl implements FileService {
             context.setVariables(data);
             String fileName = "infoCus";
             String htmlContent = templateEngine.process(fileName, context);
+            logger.info("exportFile htmlContent: {}", htmlContent);
             String miniType = "application/pdf;charset=UTF-8";
             httpServletResponse.setContentType(miniType);
             String uuid = UUID.randomUUID().toString();
@@ -163,10 +164,13 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    private Map<String, Object> insertData(String id) {
+    private Map<String, Object> insertData(String id) throws IOException {
+        byte[] imageBytes = Files.readAllBytes(Paths.get("D:/SangLangThang.PNG"));
+        String qrBase64 = Base64.getEncoder().encodeToString(imageBytes);
         Map<String, Object> map = new HashMap<>();
-        map.put("accountName","sang lang thang");
-        map.put("accountNumber","231231231");
+        map.put("idStudent","202490080");
+        map.put("fullName","Nguyễn Trọng Sang");
+        map.put("qrBase64", qrBase64);
         return map;
     }
 
