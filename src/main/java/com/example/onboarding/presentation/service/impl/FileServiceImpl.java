@@ -12,6 +12,11 @@ import com.example.onboarding.presentation.model.UploadFileResponse;
 import com.example.onboarding.presentation.service.FileService;
 import com.example.onboarding.presentation.util.VelocityUtils;
 import com.example.onboarding.presentation.validator.Validate;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
@@ -29,6 +34,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -140,7 +148,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public ExportFileResponse exportFile(ExportFileRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
+    public ExportFileResponse exportFile(ExportFileRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, WriterException {
         try {
             ExportFileResponse exportFileResponse = new ExportFileResponse();
             Map<String, Object> data = insertData(request.getId());
@@ -164,14 +172,31 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    private Map<String, Object> insertData(String id) throws IOException {
-        byte[] imageBytes = Files.readAllBytes(Paths.get("D:/SangLangThang.PNG"));
-        String qrBase64 = Base64.getEncoder().encodeToString(imageBytes);
+    private Map<String, Object> insertData(String id) throws IOException, WriterException {
+//        byte[] imageBytes = Files.readAllBytes(Paths.get("D:\\Personal\\VB2\\SangLangThang.PNG"));
+//        String qrBase64 = Base64.getEncoder().encodeToString(imageBytes);
+        String content = "Nguyễn Trọng Sang \n 22/12/2994 \n 202490080";
+        String qrBase64 = generateQRCodeBase64(content, 300,300);
         Map<String, Object> map = new HashMap<>();
         map.put("idStudent","202490080");
         map.put("fullName","Nguyễn Trọng Sang");
+        map.put("dateOfbirth", "22/12/1994");
         map.put("qrBase64", qrBase64);
         return map;
+    }
+
+    public String generateQRCodeBase64(String content, int width, int height)
+            throws WriterException, IOException {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height);
+
+        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(qrImage, "png", outputStream);
+        byte[] qrBytes = outputStream.toByteArray();
+
+        return Base64.getEncoder().encodeToString(qrBytes);
     }
 
     public Resource loadFIleAsResource(String path){

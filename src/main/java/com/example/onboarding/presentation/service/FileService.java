@@ -4,6 +4,7 @@ import com.example.onboarding.presentation.model.DownloadFileRequest;
 import com.example.onboarding.presentation.model.ExportFileRequest;
 import com.example.onboarding.presentation.model.ExportFileResponse;
 import com.example.onboarding.presentation.model.UploadFileResponse;
+import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +20,5 @@ public interface FileService {
 
     boolean deleteFileById(String fileId) throws IOException;
 
-    ExportFileResponse exportFile(ExportFileRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException;
+    ExportFileResponse exportFile(ExportFileRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, WriterException;
 }
