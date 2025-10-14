@@ -5,11 +5,9 @@ import com.example.onboarding.persistence.repository.ManageFileRepo;
 import com.example.onboarding.presentation.configuration.AppConfiguration;
 import com.example.onboarding.presentation.exception.ErrorCode;
 import com.example.onboarding.presentation.exception.OnboardingException;
-import com.example.onboarding.presentation.model.DownloadFileRequest;
-import com.example.onboarding.presentation.model.ExportFileRequest;
-import com.example.onboarding.presentation.model.ExportFileResponse;
-import com.example.onboarding.presentation.model.UploadFileResponse;
+import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
+import com.example.onboarding.presentation.util.PDFUtils;
 import com.example.onboarding.presentation.util.VelocityUtils;
 import com.example.onboarding.presentation.validator.Validate;
 import com.google.zxing.BarcodeFormat;
@@ -17,6 +15,11 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Image;
+import com.lowagie.text.pdf.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
@@ -35,11 +38,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import javax.imageio.ImageIO;
+import javax.print.Doc;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -168,6 +170,80 @@ public class FileServiceImpl implements FileService {
             return exportFileResponse;
         } catch (Exception e){
             logger.error("FileServiceImpl exportFile with error detail: {}", e);
+            throw e;
+        }
+    }
+
+    @Override
+    public GenFileContractResponse exportFileBaseString(GenFileContractRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
+        try {
+            genFileContract();
+            String filePath = appConfiguration.getFolderSaveFile();
+            String contract = "0387501612" + "_" + "034094000298" +"_sdk_mwg" + ".pdf";
+            byte[] input_file = Files.readAllBytes(Paths.get(filePath + contract));
+            byte[] encodedBytes = Base64.getEncoder().encode(input_file);
+            String encodeString = new String(encodedBytes);
+            byte[] decodeBytes = Base64.getDecoder().decode(encodeString.getBytes());
+            String responseBase64 = Base64.getEncoder().encodeToString(decodeBytes);
+            File contractFile = new File(filePath + contract);
+            logger.info("FileServiceImpl exportFileBaseString path {}", contractFile.getPath());
+            if(contractFile.delete()){
+                logger.info("FileServiceImpl exportFileBaseString delete file success");
+            } else {
+                logger.info("FileServiceImpl exportFileBaseString delete file failed");
+            }
+            GenFileContractResponse response = new GenFileContractResponse();
+            response.setBaseContract(responseBase64);
+            return response;
+        } catch (Exception e){
+            logger.error("FileServiceImpl exportFileBaseString with error detail: {}", e);
+            throw e;
+        }
+    }
+
+    public Document genFileContract() throws IOException {
+        try {
+            FontFactory.register(getClass().getClassLoader().getResource("lib/arial.ttf").getPath(), "Arial");
+            Font boldFont = FontFactory.getFont("Arial", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 7f, Font.BOLD);
+            FontFactory.register(getClass().getClassLoader().getResource("lib/arial.ttf").getPath(), "Arial");
+            Font font = FontFactory.getFont("Arial", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 7f, Font.NORMAL);
+            Font fontI = FontFactory.getFont("Arial", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 6f, Font.ITALIC);
+            FontFactory.register(getClass().getClassLoader().getResource("lib/wingding.ttf").getPath(), "Wingding");
+            Font fontW = FontFactory.getFont("Wingding", BaseFont.IDENTITY_H, 7f, Font.NORMAL);
+            char checked = '\u00FE';
+            char unchecked = '\u00A8';
+            String contract = "0387501612" + "_" + "034094000298" + "_sdk_mwg" + ".pdf";
+
+            Document document = new Document();
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(appConfiguration.getFolderSaveFile() + contract));
+            writer.setEncryption(null, null, PdfWriter.ALLOW_PRINTING, PdfWriter.STANDARD_ENCRYPTION_128);
+            document.open();
+
+            PdfPTable header = new PdfPTable(1);
+            header.setWidthPercentage(100);
+
+            URL imageUrl = getClass().getClassLoader().getResource("lib/Capture.PNG");
+            if(imageUrl == null){
+                throw new OnboardingException(ErrorCode.INTERNAL_SERVER_ERROR);
+            }
+            Image image = Image.getInstance(imageUrl);
+            PdfPCell imageCell = new PdfPCell(image, true);
+            header.addCell(imageCell);
+
+            PdfPTable infoCus = new PdfPTable(2);
+            infoCus.setWidthPercentage(100);
+            infoCus.addCell(PDFUtils.createCellText(1, 2, "Thông tin cá nhân", boldFont, new int[]{}));
+            infoCus.addCell(PDFUtils.createCellText(1, 2, "Thông tin chi tiết", fontI, new int[]{}));
+            infoCus.addCell(PDFUtils.createCellText(1, 1, "Họ và tên", font, new int[]{}));
+            infoCus.addCell(PDFUtils.createCellText(1, 1, "Nguyễn Trọng Sang", font, new int[]{}));
+            infoCus.addCell(PDFUtils.createCellText(1, 1, String.valueOf(unchecked), fontW, new int[]{}));
+            infoCus.addCell(PDFUtils.createCellText(1, 1, String.valueOf(checked), fontW, new int[]{}));
+            document.add(header);
+            document.add(infoCus);
+            document.close();
+            return document;
+        } catch (Exception e){
+            logger.warn("FileServiceImpl genFileContract with error detail: {}", e);
             throw e;
         }
     }

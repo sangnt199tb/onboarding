@@ -1,9 +1,6 @@
 package com.example.onboarding.presentation.controller;
 
-import com.example.onboarding.presentation.model.DownloadFileRequest;
-import com.example.onboarding.presentation.model.ExportFileRequest;
-import com.example.onboarding.presentation.model.ExportFileResponse;
-import com.example.onboarding.presentation.model.UploadFileResponse;
+import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
 import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,5 +51,12 @@ public class FileApiController {
     public ExportFileResponse exportFile(@RequestBody ExportFileRequest request,
                                          HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, WriterException {
         return fileService.exportFile(request, httpServletRequest, httpServletResponse);
+    }
+
+    @PostMapping("/export/base")
+    @ResponseStatus(HttpStatus.OK)
+    public GenFileContractResponse exportFileBaseString(@RequestBody GenFileContractRequest request,
+                                              HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, WriterException {
+        return fileService.exportFileBaseString(request, httpServletRequest, httpServletResponse);
     }
 }
