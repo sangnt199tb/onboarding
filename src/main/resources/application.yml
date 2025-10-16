@@ -65,4 +65,8 @@ job-schedule:
   registerBranch: ${OB_JOB_REGISTER_BRANCH:999}
   turnOn: ${OB_JOB_TURN_ON:true}
   threadPool: ${OB_JOB_THREAD_POOL:5}
+check-sum:
+  username: VNEID
+  secureKey: FNSJFNSJHFUHQOH1313
+  apiId: VNEID_CALL_BACK
 
