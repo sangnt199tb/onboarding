@@ -32,6 +32,7 @@ public class TestCollection {
         logger.debug("Đây là log DEBUG, chỉ hiện nếu cấu hình bật DEBUG cho package này");
         logger.warn("Đây là log WARNING, chú ý nhé!");
         logger.error("Đây là log ERROR, có lỗi rồi!");
+        logger.info("xin chao");
         System.out.println("====Start TestCollection testMap====");
         testCollectionService.testCollection();
         return true;
