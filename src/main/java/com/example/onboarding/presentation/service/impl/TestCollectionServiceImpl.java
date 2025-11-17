@@ -158,6 +158,7 @@ public class TestCollectionServiceImpl implements TestCollectionService {
 
             while (!callQueue.isEmpty()){
                 System.out.println("Phục vụ: " + callQueue.poll());
+                logger.warn("====test lai=====");
             }
 
         } catch (Exception e){
