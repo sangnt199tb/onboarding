@@ -1,9 +1,10 @@
 package com.example.onboarding.presentation.controller;
 
-import com.example.onboarding.presentation.model.DownloadFileRequest;
-import com.example.onboarding.presentation.model.UploadFileResponse;
+import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
+import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,4 +46,17 @@ public class FileApiController {
         return fileService.deleteFileById(fileId);
     }
 
+    @PostMapping("/export")
+    @ResponseStatus(HttpStatus.OK)
+    public ExportFileResponse exportFile(@RequestBody ExportFileRequest request,
+                                         HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, WriterException {
+        return fileService.exportFile(request, httpServletRequest, httpServletResponse);
+    }
+
+    @PostMapping("/export/base")
+    @ResponseStatus(HttpStatus.OK)
+    public GenFileContractResponse exportFileBaseString(@RequestBody GenFileContractRequest request,
+                                              HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, WriterException {
+        return fileService.exportFileBaseString(request, httpServletRequest, httpServletResponse);
+    }
 }

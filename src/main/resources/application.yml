@@ -39,6 +39,7 @@ tpb:
       thresholdScoreFaceMatch: 1
       thresholdScoreLiveness: 1
       thresholdScoreRetrival: 1
+      folderSaveFile: ContractOnboard_
   integration:
     callPostOnline: ${OB_INTEGRATION_POST:https://api-generator.retool.com/WfrVFG/data}
     getListCommerce: ${OB_INTEGRATION_GET_LIST_COMMERCE:https://run.mocky.io/v3/1a24e46f-aced-4007-a23f-cf0ce5684e18}
@@ -64,4 +65,8 @@ job-schedule:
   registerBranch: ${OB_JOB_REGISTER_BRANCH:999}
   turnOn: ${OB_JOB_TURN_ON:true}
   threadPool: ${OB_JOB_THREAD_POOL:5}
+check-sum:
+  username: VNEID
+  secureKey: FNSJFNSJHFUHQOH1313
+  apiId: VNEID_CALL_BACK
 

@@ -27,6 +27,8 @@ public class AppConfiguration {
     private String thresholdScoreLiveness;
     private String thresholdScoreRetrival;
 
+    private String folderSaveFile;
+
     @Bean("onboardingAsync")
     public TaskExecutor onboardingAsyncExecutor(){
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
