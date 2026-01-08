@@ -11,6 +11,8 @@ import com.example.onboarding.presentation.model.FaceMatchingResponse;
 import com.example.onboarding.presentation.model.OnboardTransModel;
 import com.example.onboarding.presentation.service.OnboardingService;
 import com.example.onboarding.presentation.util.LogUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ public class OnboardingServiceImpl implements OnboardingService {
     private final OnboardingTransactionRepo onboardingTransactionRepo;
     private final EkycService ekycService;
     private final AppConfiguration appConfiguration;
+    private static final Logger logger = LoggerFactory.getLogger(OnboardingServiceImpl.class);
+
 
     @Autowired
     @Qualifier("taskExecutor")
@@ -71,35 +75,35 @@ public class OnboardingServiceImpl implements OnboardingService {
             CompletableFuture<FaceMatchingResponse> responseCompletableFuture = compareFaceThreadSum(request);
             return responseCompletableFuture.join();
         } catch (Exception e){
-            System.out.println("OnboardingServiceImpl compareFaceThread with error detail:" + e);
+            logger.error("OnboardingServiceImpl compareFaceThread with error detail: {}", e);
             throw e;
         }
     }
 
     private CompletableFuture<com.example.onboarding.integration.model.kyc.FaceMatchingResponse> callCompareFaceThread(FaceMatchingRequest request){
         return CompletableFuture.supplyAsync(() -> {
-            System.out.println("Start OnboardingServiceImpl callCompareFaceThread with thread name: " + Thread.currentThread().getName());
+            logger.info("Start OnboardingServiceImpl callCompareFaceThread with thread name: {}", Thread.currentThread().getName());
             com.example.onboarding.integration.model.kyc.FaceMatchingResponse faceMatchingResponse
                     = ekycService.compareFaceEkyc(request);
-            System.out.println("End OnboardingServiceImpl callCompareFaceThread with thread name: " + Thread.currentThread().getName());
+            logger.info("End OnboardingServiceImpl callCompareFaceThread with thread name: {}", Thread.currentThread().getName());
             return faceMatchingResponse;
         }, taskExecutor);
     }
 
     private CompletableFuture<LivenessCheckKycResponse> callLivenessCheckKycThread(FaceMatchingRequest request){
         return CompletableFuture.supplyAsync(() -> {
-            System.out.println("Start OnboardingServiceImpl callLivenessCheckKycThread with thread name: " + Thread.currentThread().getName());
+            logger.error("Start OnboardingServiceImpl callLivenessCheckKycThread with thread name: {}", Thread.currentThread().getName());
             LivenessCheckKycResponse livenessCheckKycResponse = ekycService.livenessCheckEkyc(request);
-            System.out.println("End OnboardingServiceImpl callLivenessCheckKycThread with thread name: " + Thread.currentThread().getName());
+            logger.error("End OnboardingServiceImpl callLivenessCheckKycThread with thread name: {}", Thread.currentThread().getName());
             return livenessCheckKycResponse;
         }, taskExecutor);
     }
 
     private CompletableFuture<FaceRetrievalKycResponse> callFaceRetrievalKycThread(FaceMatchingRequest request){
         return CompletableFuture.supplyAsync(() -> {
-            System.out.println("Start OnboardingServiceImpl callFaceRetrievalKycThread with thread name: " + Thread.currentThread().getName());
+            logger.info("Start OnboardingServiceImpl callFaceRetrievalKycThread with thread name: {}", Thread.currentThread().getName());
             FaceRetrievalKycResponse faceRetrievalKycResponse = ekycService.faceRetrievalEkyc(request);
-            System.out.println("End OnboardingServiceImpl callFaceRetrievalKycThread with thread name: " + Thread.currentThread().getName());
+            logger.info("End OnboardingServiceImpl callFaceRetrievalKycThread with thread name: {}", Thread.currentThread().getName());
             return faceRetrievalKycResponse;
         }, taskExecutor);
     }
@@ -120,7 +124,7 @@ public class OnboardingServiceImpl implements OnboardingService {
                         // check face mathching
                         com.example.onboarding.integration.model.kyc.FaceMatchingResponse matchingResponse
                                 = faceMatchingResponseCompletableFuture.join();
-                        System.out.println("OnboardingServiceImpl compareFaceThreadSum matchingResponse: " + LogUtil.toJson(matchingResponse));
+                        logger.error("OnboardingServiceImpl compareFaceThreadSum matchingResponse: {}", LogUtil.toJson(matchingResponse));
                         if(matchingResponse.isSuccess()){
                             faceMatchingResponse.setResultFaceMatching("PASS");
                         } else {
@@ -129,7 +133,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 
                         // liveness check
                         LivenessCheckKycResponse livenessCheckKycResponse = livenessCheckKycResponseCompletableFuture.join();
-                        System.out.println("OnboardingServiceImpl compareFaceThreadSum livenessCheckKycResponse: " + LogUtil.toJson(livenessCheckKycResponse));
+                        logger.info("OnboardingServiceImpl compareFaceThreadSum livenessCheckKycResponse: {}", LogUtil.toJson(livenessCheckKycResponse));
                         if(livenessCheckKycResponse.isSuccess()){
                             faceMatchingResponse.setResultLiveness("PASS");
                         } else {
@@ -138,7 +142,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 
                         // face retrieval
                         FaceRetrievalKycResponse retrievalKycResponse = faceRetrievalKycResponseCompletableFuture.join();
-                        System.out.println("OnboardingServiceImpl compareFaceThreadSum retrievalKycResponse: " + LogUtil.toJson(retrievalKycResponse));
+                        logger.info("OnboardingServiceImpl compareFaceThreadSum retrievalKycResponse: {}", LogUtil.toJson(retrievalKycResponse));
                         boolean resultFaceRetrieval = retrievalKycResponse.getMatched_faces().stream()
                                 .anyMatch( e -> (e.getMatch_score() - Float.valueOf(appConfiguration.getThresholdScoreRetrival()) > 0));
                         if(!resultFaceRetrieval){
@@ -150,7 +154,7 @@ public class OnboardingServiceImpl implements OnboardingService {
                         return faceMatchingResponse;
                     });
         } catch (Exception e){
-            System.out.println("OnboardingServiceImpl compareFaceThreadSum with error detail: " + e);
+            logger.error("OnboardingServiceImpl compareFaceThreadSum with error detail: {}", e);
             throw e;
         }
     }
