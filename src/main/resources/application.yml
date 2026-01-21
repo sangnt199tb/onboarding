@@ -56,6 +56,11 @@ tpb:
     getListTransactionByAccountOne: https://run.mocky.io/v3/bd43fc19-bfbc-47e3-bf1c-62007360596d
     getListTransactionByAccountTwo: https://run.mocky.io/v3/5653b22e-6079-4236-87fc-40f96f3d4650
     infoCompanyUrl: https://run.mocky.io/v3/08e9957b-1b63-47e4-893e-fcbdde14b395
+  minio:
+    url: http://localhost:9000
+    access-key: admin
+    secret-key: admin123
+    bucket: onboard
 job-schedule:
   cron:
     expression: ${OB_JOB_CRON_EXPRESSION:0 * * * * ?}

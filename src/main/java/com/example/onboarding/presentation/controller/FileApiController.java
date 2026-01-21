@@ -2,6 +2,7 @@ package com.example.onboarding.presentation.controller;
 
 import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
+import com.example.onboarding.presentation.service.MinioService;
 import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,10 +19,13 @@ import java.io.IOException;
 public class FileApiController {
 
     private final FileService fileService;
+    private final MinioService minioService;
+
 
     @Autowired
-    public FileApiController(FileService fileService) {
+    public FileApiController(FileService fileService, MinioService minioService) {
         this.fileService = fileService;
+        this.minioService = minioService;
     }
 
     @PostMapping("/upload")
@@ -58,5 +62,11 @@ public class FileApiController {
     public GenFileContractResponse exportFileBaseString(@RequestBody GenFileContractRequest request,
                                               HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, WriterException {
         return fileService.exportFileBaseString(request, httpServletRequest, httpServletResponse);
+    }
+
+    @PostMapping("/upload-minio")
+    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
+        String objectName = minioService.uploadFile(file);
+        return ResponseEntity.ok(objectName);
     }
 }

@@ -7,6 +7,7 @@ import com.example.onboarding.presentation.exception.ErrorCode;
 import com.example.onboarding.presentation.exception.OnboardingException;
 import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
+import com.example.onboarding.presentation.service.MinioService;
 import com.example.onboarding.presentation.util.PDFUtils;
 import com.example.onboarding.presentation.util.VelocityUtils;
 import com.example.onboarding.presentation.validator.Validate;
@@ -38,7 +39,6 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import javax.imageio.ImageIO;
-import javax.print.Doc;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
@@ -46,7 +46,6 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -63,42 +62,54 @@ public class FileServiceImpl implements FileService {
     @jakarta.annotation.Resource
     private VelocityUtils velocityUtils;
 
+    private final MinioService minioService;
+
     @Autowired
-    public FileServiceImpl(AppConfiguration appConfiguration, ManageFileRepo manageFileRepo) {
+    public FileServiceImpl(AppConfiguration appConfiguration, ManageFileRepo manageFileRepo, MinioService minioService) {
         this.appConfiguration = appConfiguration;
         this.manageFileRepo = manageFileRepo;
+        this.minioService = minioService;
     }
 
 
     @Override
     public UploadFileResponse uploadFile(MultipartFile file, String phoneNumber, String fileType, HttpServletRequest httpServletRequest) throws IOException {
-        // validate file name
-        Validate.validateFileName(file.getOriginalFilename());
+        try {
+            // validate file name
+            Validate.validateFileName(file.getOriginalFilename());
 
-        // validate file type
-        Validate.validateFileType(file.getOriginalFilename());
+            // validate file type
+            Validate.validateFileType(file.getOriginalFilename());
 
-        String fileName = genFileName(phoneNumber) + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+            String fileName = genFileName(phoneNumber) + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+            String filePath = "";
+            if(true){
+                minioService.uploadFile(file);
+            } else {
+                filePath = appConfiguration.getSaveFile() + File.separator + fileName;
+                file.transferTo(new File(filePath));
+            }
 
-        String filePath = appConfiguration.getSaveFile() + File.separator + fileName;
-        file.transferTo(new File(filePath));
+            UploadFileResponse response = new UploadFileResponse();
 
-        UploadFileResponse response = new UploadFileResponse();
+            //save manageFile
+            ManageFileEntity manageFileEntity = new ManageFileEntity();
+            manageFileEntity.setId(UUID.randomUUID().toString());
+            manageFileEntity.setCreatedBy(phoneNumber);
+            manageFileEntity.setCreateDate(new Timestamp(System.currentTimeMillis()));
+            manageFileEntity.setFileName(file.getOriginalFilename());
+            manageFileEntity.setFilePath(filePath);
+            manageFileEntity.setFileStatus("CREATE");
+            manageFileEntity.setFileType(fileType);
+            manageFileEntity.setFomart(file.getContentType());
 
-        //save manageFile
-        ManageFileEntity manageFileEntity = new ManageFileEntity();
-        manageFileEntity.setId(UUID.randomUUID().toString());
-        manageFileEntity.setCreatedBy(phoneNumber);
-        manageFileEntity.setCreateDate(new Timestamp(System.currentTimeMillis()));
-        manageFileEntity.setFileName(file.getOriginalFilename());
-        manageFileEntity.setFilePath(filePath);
-        manageFileEntity.setFileStatus("CREATE");
-        manageFileEntity.setFileType(fileType);
-        manageFileEntity.setFomart(file.getContentType());
-
-        manageFileEntity = manageFileRepo.save(manageFileEntity);
-        response.setFileId(manageFileEntity.getId());
-        return response;
+            manageFileEntity = manageFileRepo.save(manageFileEntity);
+            response.setFileId(manageFileEntity.getId());
+            return response;
+        } catch (Exception e){
+            logger.error("FileServiceImpl upload file with error detail: {}", e);
+            throw e;
+        }
     }
 
     @Override
