@@ -7,7 +7,6 @@ import com.example.onboarding.presentation.exception.ErrorCode;
 import com.example.onboarding.presentation.exception.OnboardingException;
 import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
-import com.example.onboarding.presentation.service.MinioService;
 import com.example.onboarding.presentation.util.PDFUtils;
 import com.example.onboarding.presentation.util.VelocityUtils;
 import com.example.onboarding.presentation.validator.Validate;
@@ -62,10 +61,10 @@ public class FileServiceImpl implements FileService {
     @jakarta.annotation.Resource
     private VelocityUtils velocityUtils;
 
-    private final MinioService minioService;
+    private final MinioServiceImpl minioService;
 
     @Autowired
-    public FileServiceImpl(AppConfiguration appConfiguration, ManageFileRepo manageFileRepo, MinioService minioService) {
+    public FileServiceImpl(AppConfiguration appConfiguration, ManageFileRepo manageFileRepo, MinioServiceImpl minioService) {
         this.appConfiguration = appConfiguration;
         this.manageFileRepo = manageFileRepo;
         this.minioService = minioService;

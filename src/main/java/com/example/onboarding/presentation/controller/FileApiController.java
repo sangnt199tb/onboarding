@@ -2,7 +2,7 @@ package com.example.onboarding.presentation.controller;
 
 import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
-import com.example.onboarding.presentation.service.MinioService;
+import com.example.onboarding.presentation.service.impl.MinioServiceImpl;
 import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,11 +19,11 @@ import java.io.IOException;
 public class FileApiController {
 
     private final FileService fileService;
-    private final MinioService minioService;
+    private final MinioServiceImpl minioService;
 
 
     @Autowired
-    public FileApiController(FileService fileService, MinioService minioService) {
+    public FileApiController(FileService fileService, MinioServiceImpl minioService) {
         this.fileService = fileService;
         this.minioService = minioService;
     }
