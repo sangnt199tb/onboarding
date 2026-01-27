@@ -20,6 +20,7 @@ import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
 import com.lowagie.text.Image;
 import com.lowagie.text.pdf.*;
+import io.minio.errors.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,8 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -72,7 +76,8 @@ public class FileServiceImpl implements FileService {
 
 
     @Override
-    public UploadFileResponse uploadFile(MultipartFile file, String phoneNumber, String fileType, HttpServletRequest httpServletRequest) throws IOException {
+    public UploadFileResponse uploadFile(MultipartFile file, String phoneNumber, String fileType,
+                                         String bucketType,HttpServletRequest httpServletRequest) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         try {
             // validate file name
             Validate.validateFileName(file.getOriginalFilename());
@@ -83,7 +88,7 @@ public class FileServiceImpl implements FileService {
             String fileName = genFileName(phoneNumber) + "." + FilenameUtils.getExtension(file.getOriginalFilename());
             String filePath = "";
             if(true){
-                minioService.uploadFile(file);
+                filePath = minioService.uploadFile(file, bucketType);
             } else {
                 filePath = appConfiguration.getSaveFile() + File.separator + fileName;
                 file.transferTo(new File(filePath));
@@ -210,6 +215,41 @@ public class FileServiceImpl implements FileService {
             throw e;
         }
     }
+
+    @Override
+    public ResponseEntity<byte[]> downloadFileMinio(DownloadFileRequest downloadFileRequest) {
+        logger.info("FileServiceImpl downloadFileMinio with id: {}", downloadFileRequest.getId());
+        try {
+            ManageFileEntity entity = manageFileRepo.findFirstById(downloadFileRequest.getId());
+            if(Objects.nonNull(entity)) {
+                InputStream inputStream = minioService.downloadFile(entity.getFilePath());
+                logger.info("FileServiceImpl downloadFileMinio entity: {}", entity);
+                byte[] bytes = inputStream.readAllBytes();
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CACHE_CONTROL, "max-age=3600")
+                        .contentType(detectMediaType(entity.getFomart()))
+                        .body(bytes);
+            }
+        } catch (Exception e){
+            logger.error("FileServiceImpl downloadFileMinio with error detail: {}", e);
+        }
+        return null;
+    }
+
+    private MediaType detectMediaType(String fileName) {
+        if (fileName.endsWith(".png")) {
+            return MediaType.IMAGE_PNG;
+        }
+        if (fileName.endsWith(".webp")) {
+            return MediaType.valueOf("image/webp");
+        }
+        if (fileName.endsWith(".gif")) {
+            return MediaType.IMAGE_GIF;
+        }
+        return MediaType.IMAGE_JPEG; // default
+    }
+
 
     public Document genFileContract() throws IOException {
         try {

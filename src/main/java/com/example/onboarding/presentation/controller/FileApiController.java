@@ -4,6 +4,7 @@ import com.example.onboarding.presentation.model.*;
 import com.example.onboarding.presentation.service.FileService;
 import com.example.onboarding.presentation.service.impl.MinioServiceImpl;
 import com.google.zxing.WriterException;
+import io.minio.errors.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 @RequestMapping("/v1/file")
 @RestController
@@ -34,8 +37,9 @@ public class FileApiController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("phoneNumber") String phoneNumber,
             @RequestParam("fileType") String fileType,
-            HttpServletRequest httpServletRequest) throws IOException {
-        return fileService.uploadFile(file, phoneNumber, fileType, httpServletRequest);
+            @RequestParam("bucketType") String bucketType,
+            HttpServletRequest httpServletRequest) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        return fileService.uploadFile(file, phoneNumber, fileType, bucketType,httpServletRequest);
     }
 
     @PostMapping("/download-file")
@@ -65,8 +69,14 @@ public class FileApiController {
     }
 
     @PostMapping("/upload-minio")
-    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
-        String objectName = minioService.uploadFile(file);
+    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        String objectName = minioService.uploadFile(file, null);
         return ResponseEntity.ok(objectName);
+    }
+
+    @PostMapping("/download-file-minio")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<byte[]> downloadFileMinio(@RequestBody DownloadFileRequest downloadFileRequest) throws IOException {
+        return fileService.downloadFileMinio(downloadFileRequest);
     }
 }
