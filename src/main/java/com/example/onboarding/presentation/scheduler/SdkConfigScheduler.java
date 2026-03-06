@@ -39,4 +39,9 @@ public class SdkConfigScheduler {
     public void loadSdkConfig(){
         System.out.println("====chay job cron===");
     }
+
+    @Scheduled(cron = "${job-schedule.cron.expression}")
+    public void loadSdkConfig1(){
+        System.out.println("====chay job cron===");
+    }
 }

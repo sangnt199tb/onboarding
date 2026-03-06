@@ -50,9 +50,9 @@ public class SdkConfigController {
     @GetMapping("/test-async")
     @ResponseStatus(HttpStatus.OK)
     public boolean testAsync(){
-        System.out.println("====Start SdkConfigController testAsync====");
-        sdkConfigService.testAsync();
-        System.out.println("====Start SdkConfigController testAsync====");
+        System.out.println("====Start SdkConfigController testAsync====");// khoi cv 1
+        sdkConfigService.testAsync(); // khoi o giu
+        System.out.println("====End SdkConfigController testAsync===="); // khoi cv 2
         return true;
     }
 
